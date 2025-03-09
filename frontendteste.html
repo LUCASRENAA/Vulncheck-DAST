@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisa Site</title>
+    <style>
+        .resultado {
+            padding: 10px;
+            margin-top: 20px;
+            font-size: 18px;
+            color: white;
+        }
+        .verde {
+            background-color: green;
+        }
+        .laranja {
+            background-color: orange;
+        }
+        .vermelho {
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Analise de Segurança de Sites</h1>
+
+    <!-- Formulário para enviar o site -->
+    <form id="siteForm">
+        <label for="site">Digite o site:</label>
+        <input type="text" id="site" name="site" required>
+        <button type="submit">Analisar</button>
+    </form>
+
+    <!-- Exibição do resultado -->
+    <div id="resultado" class="resultado" style="display:none;"></div>
+
+    <script>
+        document.getElementById("siteForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Impede o envio do formulário convencional
+
+            // Obtém o valor do site
+            const site = document.getElementById("site").value;
+
+            // Verifica se o campo 'site' não está vazio
+            if (!site) {
+                alert("Por favor, insira o site.");
+                return;
+            }
+
+            // Cria o objeto de dados para o POST
+            const data = {
+                site: site,
+                pontuacao: 0
+            };
+
+            // Faz a requisição POST para a API
+            fetch("http://127.0.0.1:8001/api/scans/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Atualiza a exibição do resultado
+                const resultadoDiv = document.getElementById("resultado");
+                resultadoDiv.style.display = "block";
+
+                // Altera a cor com base na pontuação
+                let scoreColorClass = "";
+
+                if (data.pontuacao > 6) {
+                    scoreColorClass = "verde";
+                } else if (data.pontuacao > 5) {
+                    scoreColorClass = "laranja";
+                } else {
+                    scoreColorClass = "vermelho";
+                }
+
+                // Exibe a mensagem de resultado
+                resultadoDiv.className = "resultado " + scoreColorClass;
+                resultadoDiv.innerHTML = `
+                    <strong>Site:</strong> ${data.site}<br>
+                    <strong>Status:</strong> ${data.status}<br>
+                    <strong>Pontuação:</strong> ${data.pontuacao}<br>
+                    <strong>Data do Scan:</strong> ${data.scan_date}
+                `;
+            })
+            .catch(error => {
+                console.error("Erro ao fazer o POST:", error);
+                alert("Houve um erro ao processar a requisição.");
+            });
+        });
+    </script>
+</body>
+</html>
